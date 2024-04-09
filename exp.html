@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>.expense-list { margin-top: 20px; }</style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center mt-5">Expense Tracker</h1>
+    <form id="expense-form" class="mt-4">
+      <input type="number" class="form-control" placeholder="Expense Amount" required>
+      <input type="text" class="form-control" placeholder="Description" required>
+      <select class="form-control" required><option disabled selected>Select a category</option><option>Food</option><option>Transportation</option><option>Entertainment</option><option>Shopping</option><option>Bills</option></select>
+      <button type="submit" class="btn btn-primary btn-block mt-3">Add Expense</button>
+    </form>
+    <ul id="expenseList" class="list-group expense-list mt-4"></ul>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+      updateExpenseList(expenses);
+    });
+
+    document.getElementById('expense-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const [amountInput, descriptionInput, categorySelect] = this.querySelectorAll('input, select');
+      if (amountInput.value && descriptionInput.value && categorySelect.value) {
+        const expense = { id: Date.now(), amount: parseFloat(amountInput.value), description: descriptionInput.value, category: categorySelect.value };
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        expenses.push(expense);
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+        updateExpenseList(expenses);
+        this.reset();
+      } else {
+        alert('Please fill in all fields');
+      }
+    });
+
+    function deleteExpense(id) {
+      let expenses = JSON.parse(localStorage.getItem('expenses'));
+      expenses = expenses.filter(expense => expense.id !== id);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+      updateExpenseList(expenses);
+    }
+
+    function updateExpenseList(expenses) {
+      document.getElementById('expenseList').innerHTML = expenses.map(expense => `<li class="list-group-item d-flex justify-content-between align-items-center"><div><strong>${expense.description}</strong> - ${expense.category}: $${expense.amount}</div><div><button type="button" class="btn btn-danger btn-sm mr-1" onclick="deleteExpense(${expense.id})">Delete</button><button type="button" class="btn btn-warning btn-sm" onclick="editExpense(${expense.id})">Edit</button></div></li>`).join('');
+    }
+
+    function editExpense(id) {
+      let expenses = JSON.parse(localStorage.getItem('expenses'));
+      const expenseToEdit = expenses.find(expense => expense.id === id);
+      if (expenseToEdit) {
+        const newAmount = parseFloat(prompt('Enter new amount:', expenseToEdit.amount));
+        if (!isNaN(newAmount)) {
+          expenseToEdit.amount = newAmount;
+          localStorage.setItem('expenses', JSON.stringify(expenses));
+          updateExpenseList(expenses);
+        } else {
+          alert('Invalid amount');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
